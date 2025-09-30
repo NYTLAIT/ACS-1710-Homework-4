@@ -21,7 +21,7 @@ pp = PrettyPrinter(indent=4)
 
 API_KEY = os.getenv('API_KEY')
 API_URL = 'http://api.openweathermap.org/data/2.5/weather'
-
+print(API_KEY)
 
 ################################################################################
 ## ROUTES
@@ -45,10 +45,14 @@ def results():
     """Displays results for current weather conditions."""
     # TODO: Use 'request.args' to retrieve the city & units from the query
     # parameters.
-    city = ''
+    city = request.args.get('city')
+    print(city)
     units = ''
 
     params = {
+        'appid': API_KEY,
+        'q': city
+        # Add Units
         # TODO: Enter query parameters here for the 'appid' (your api key),
         # the city, and the units (metric or imperial).
         # See the documentation here: https://openweathermap.org/current
@@ -56,7 +60,9 @@ def results():
     }
 
     result_json = requests.get(API_URL, params=params).json()
-
+    print(result_json)
+    print(result_json['name'])
+    print(result_json['weather'][0]['description'])
     # Uncomment the line below to see the results of the API call!
     # pp.pprint(result_json)
 
@@ -68,7 +74,7 @@ def results():
     # function.
     context = {
         'date': datetime.now(),
-        'city': '',
+        'city': result_json['name'],
         'description': '',
         'temp': '',
         'humidity': '',
@@ -76,8 +82,9 @@ def results():
         'sunrise': '',
         'sunset': '',
         'units_letter': get_letter_for_units(units)
+        # Find all of it
     }
-
+    # Fix template results.html
     return render_template('results.html', **context)
 
 
