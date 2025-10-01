@@ -38,7 +38,7 @@ def home():
 
 def get_letter_for_units(units):
     """Returns a shorthand letter for the given units."""
-    return 'F' if units == 'imperial' else 'C' if units == 'metric' else 'K'
+    return '°F' if units == 'imperial' else '°C' if units == 'metric' else ' K'
 
 @app.route('/weather')
 def results():
@@ -47,22 +47,29 @@ def results():
     # parameters.
     city = request.args.get('city')
     print(city)
-    units = ''
+    units = request.args.get('units')
+    print(units)
 
     params = {
-        'appid': API_KEY,
-        'q': city
         # Add Units
         # TODO: Enter query parameters here for the 'appid' (your api key),
         # the city, and the units (metric or imperial).
         # See the documentation here: https://openweathermap.org/current
-
+        'appid': API_KEY,
+        'q': city,
+        'units': units
     }
 
     result_json = requests.get(API_URL, params=params).json()
     print(result_json)
     print(result_json['name'])
     print(result_json['weather'][0]['description'])
+    print(result_json['main']['temp'])
+    print(result_json['main']['humidity'])
+    print(result_json['wind']['speed'])
+    print(datetime.fromtimestamp(result_json['sys']['sunrise']))
+    print(datetime.fromtimestamp(result_json['sys']['sunset']))
+    print(get_letter_for_units(units))
     # Uncomment the line below to see the results of the API call!
     # pp.pprint(result_json)
 
@@ -75,12 +82,12 @@ def results():
     context = {
         'date': datetime.now(),
         'city': result_json['name'],
-        'description': '',
-        'temp': '',
-        'humidity': '',
-        'wind_speed': '',
-        'sunrise': '',
-        'sunset': '',
+        'description': result_json['weather'][0]['description'],
+        'temp': result_json['main']['temp'],
+        'humidity': result_json['main']['humidity'],
+        'wind_speed': result_json['wind']['speed'],
+        'sunrise': datetime.fromtimestamp(result_json['sys']['sunrise']),
+        'sunset': datetime.fromtimestamp(result_json['sys']['sunset']),
         'units_letter': get_letter_for_units(units)
         # Find all of it
     }
@@ -93,22 +100,87 @@ def comparison_results():
     """Displays the relative weather for 2 different cities."""
     # TODO: Use 'request.args' to retrieve the cities & units from the query
     # parameters.
-    city1 = ''
-    city2 = ''
-    units = ''
+    city1 = request.args.get('city1')
+    city2 = request.args.get('city2')
+    units = request.args.get('units')
+
 
     # TODO: Make 2 API calls, one for each city. HINT: You may want to write a 
     # helper function for this!
+    params1 = {
+        'appid': API_KEY,
+        'q': city1,
+        'units': units
+    }
+    params2 = {
+        'appid': API_KEY,
+        'q': city2,
+        'units': units
+    }
 
+    result_json1 = requests.get(API_URL, params=params1).json()
+    result_json2 = requests.get(API_URL, params=params2).json()
+
+    # AMOUNT and GREATER THAN OR LESS THAN    
+    # Need to get the number and expression(greaterthan/lessthan/same)
 
     # TODO: Pass the information for both cities in the context. Make sure to
     # pass info for the temperature, humidity, wind speed, and sunset time!
     # HINT: It may be useful to create 2 new dictionaries, `city1_info` and 
     # `city2_info`, to organize the data.
-    context = {
-
+    
+    # NEED TO CORRECTLY FIND KEYS
+    city1_info = {
+        'city': result_json1['name'],
+        'temp': result_json1['main']['temp'],
+        'humidity': result_json1['main']['humidity'],
+        'wind_speed': result_json1['wind']['speed'],
+        'sunset': datetime.fromtimestamp(result_json1['sys']['sunset'])
     }
 
+    city2_info = {
+        'city': result_json2['name'],
+        'temp': result_json2['main']['temp'],
+        'humidity': result_json2['main']['humidity'],
+        'wind_speed': result_json2['wind']['speed'],
+        'sunset': datetime.fromtimestamp(result_json2['sys']['sunset'])
+    }
+
+    # WILL GET STUCK ON SUNSET, ALSO NEED TO CAP/ROUND DIFFERENCE
+    context_key = ['temp', 'humidity', 'wind_speed']
+    context = {
+        'city1': city1_info['city'],
+        'city2': city2_info['city'],
+        'date': datetime.now(),
+        'units_letter': get_letter_for_units(units)
+    }
+
+    for item in context_key:
+        difference = city1_info[item] - city2_info[item]
+        if difference < 0:
+            if item == 'temp':
+                expression = 'colder'
+            elif item == 'sunset':
+                expression = 'earlier'
+            else:
+                expression = 'less'
+        elif difference > 0:
+            if item == 'temp':
+                expression = 'warmer'
+            elif item == 'sunset':
+                expression = 'later'
+            else:
+                expression = 'greater'
+        else:
+            expression = 'same'
+
+        context[item] = {
+            'difference': difference,
+            'expression': expression,
+        }
+
+    print(context)
+    
     return render_template('comparison_results.html', **context)
 
 
