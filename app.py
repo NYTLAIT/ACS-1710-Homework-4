@@ -79,15 +79,21 @@ def results():
     # For the sunrise & sunset variables, I would recommend to turn them into
     # datetime objects. You can do so using the `datetime.fromtimestamp()` 
     # function.
+    
+    date = datetime.now().strftime("%A, %B %d, %Y")
+    sunrise = datetime.fromtimestamp(result_json['sys']['sunrise']).strftime("%I %p")
+    sunset = datetime.fromtimestamp(result_json['sys']['sunset']).strftime("%I %p")
+
+
     context = {
-        'date': datetime.now(),
+        'date': date,
         'city': result_json['name'],
         'description': result_json['weather'][0]['description'],
         'temp': result_json['main']['temp'],
         'humidity': result_json['main']['humidity'],
         'wind_speed': result_json['wind']['speed'],
-        'sunrise': datetime.fromtimestamp(result_json['sys']['sunrise']),
-        'sunset': datetime.fromtimestamp(result_json['sys']['sunset']),
+        'sunrise': sunrise,
+        'sunset': sunset,
         'units_letter': get_letter_for_units(units)
         # Find all of it
     }
@@ -138,6 +144,9 @@ def comparison_results():
         'sunset': datetime.fromtimestamp(result_json1['sys']['sunset'])
     }
 
+    print('--------------------------------')
+    print(city1_info['sunset'])
+
     city2_info = {
         'city': result_json2['name'],
         'temp': result_json2['main']['temp'],
@@ -145,6 +154,7 @@ def comparison_results():
         'wind_speed': result_json2['wind']['speed'],
         'sunset': datetime.fromtimestamp(result_json2['sys']['sunset'])
     }
+
 
     # WILL GET STUCK ON SUNSET, ALSO NEED TO CAP/ROUND DIFFERENCE
     context_key = ['temp', 'humidity', 'wind_speed']
