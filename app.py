@@ -135,33 +135,33 @@ def comparison_results():
     # HINT: It may be useful to create 2 new dictionaries, `city1_info` and 
     # `city2_info`, to organize the data.
     
-    # NEED TO CORRECTLY FIND KEYS
+    # formatted the times inside objects
     city1_info = {
         'city': result_json1['name'],
         'temp': result_json1['main']['temp'],
         'humidity': result_json1['main']['humidity'],
         'wind_speed': result_json1['wind']['speed'],
-        'sunset': datetime.fromtimestamp(result_json1['sys']['sunset'])
+        'sunset': int(datetime.fromtimestamp(result_json1['sys']['sunset']).strftime('%H'))
     }
-
-    print('--------------------------------')
-    print(city1_info['sunset'])
 
     city2_info = {
         'city': result_json2['name'],
         'temp': result_json2['main']['temp'],
         'humidity': result_json2['main']['humidity'],
         'wind_speed': result_json2['wind']['speed'],
-        'sunset': datetime.fromtimestamp(result_json2['sys']['sunset'])
+        'sunset': int(datetime.fromtimestamp(result_json2['sys']['sunset']).strftime('%H'))
     }
 
+    print('--------------------------------')
+    print(city1_info['sunset'])
+    print(city2_info['sunset'])
 
     # WILL GET STUCK ON SUNSET, ALSO NEED TO CAP/ROUND DIFFERENCE
-    context_key = ['temp', 'humidity', 'wind_speed']
+    context_key = ['temp', 'humidity', 'wind_speed', 'sunset']
     context = {
         'city1': city1_info['city'],
         'city2': city2_info['city'],
-        'date': datetime.now(),
+        'date': datetime.now().strftime('%A, %B %d, %Y'),
         'units_letter': get_letter_for_units(units)
     }
 
@@ -170,22 +170,32 @@ def comparison_results():
         if difference < 0:
             if item == 'temp':
                 expression = 'colder'
-            elif item == 'sunset':
-                expression = 'earlier'
+            elif item == 'humidity':
+                expression == 'less'
+            elif item == 'wind_speed':
+                expression = 'slower'
             else:
-                expression = 'less'
+                expression = 'earlier'
+
         elif difference > 0:
             if item == 'temp':
                 expression = 'warmer'
-            elif item == 'sunset':
-                expression = 'later'
-            else:
+            elif item == 'humidity':
                 expression = 'greater'
+            elif item == 'wind_speed':
+                expression = 'faster'
+            else:
+                expression = 'later'
         else:
             expression = 'same'
+            if item != 'sunset':
+                value = city1_info[item]
+            else:
+                value = datetime.fromtimestamp(result_json1['sys']['sunset']).strftime('%I %p')
 
         context[item] = {
-            'difference': difference,
+            'difference': round(abs(difference), 2),
+            'value': value,
             'expression': expression,
         }
 
