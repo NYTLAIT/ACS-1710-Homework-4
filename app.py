@@ -176,6 +176,7 @@ def comparison_results():
                 expression = 'slower'
             else:
                 expression = 'earlier'
+            value = 'null'
 
         elif difference > 0:
             if item == 'temp':
@@ -186,6 +187,8 @@ def comparison_results():
                 expression = 'faster'
             else:
                 expression = 'later'
+            value = 'null'
+
         else:
             expression = 'same'
             if item != 'sunset':
